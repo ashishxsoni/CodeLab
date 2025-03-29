@@ -45,13 +45,13 @@ async function handleLogin(req, res) {
     }
 
     const { token, user } = result;
-
+      console.log("🔑 Token Generated:", token);
 
     // ✅ Set the cookie securely
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
     });
     // res.cookie("token", token);
