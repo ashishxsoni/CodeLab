@@ -62,6 +62,7 @@ const LoginPage = () => {
           showErrorToast(response.data.message);
         } else if (response.data.status === "success") {
           showSuccessToast(response.data.message);
+          console.log("Frontend: ",response.data.user);
           dispatch(login(response.data.user));
           
           // Check if there's a redirect destination

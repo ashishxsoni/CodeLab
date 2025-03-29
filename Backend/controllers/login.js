@@ -48,13 +48,13 @@ async function handleLogin(req, res) {
 
 
     // ✅ Set the cookie securely
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   sameSite: "strict",
-    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
-    // });
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
+    });
+    // res.cookie("token", token);
     console.log("✅ Login Successful for:", user.email);
 
     return res.status(200).json({
