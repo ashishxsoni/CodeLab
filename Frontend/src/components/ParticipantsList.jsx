@@ -26,7 +26,7 @@ const ParticipantsList = ({ participants, darkMode  }) => {
             <div className="relative mr-3">
               {participant.profileImage ? (
                 <img 
-                  src={`http://localhost:5000${participant.profileImage}`}
+                  src={`${String(import.meta.env.VITE_API_URL)}/${participant.profileImage}`}
                   alt={participant.fullname}
                   className="h-10 w-10 rounded-full object-cover shadow-lg"
                 />
