@@ -46,7 +46,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // Serve static files (CSS and JS)  
-// this means every request on this server : http://localhost:5000/public/upload is changes into http://localhost:5000/uploadand
+// this means every request on this server : http://localhost:5000/public/upload is changes into http://localhost:5000/upload
 // and  all request on this path is treated staticlly
 app.use(express.static(path.join(__dirname ,'./public')));  
 // Serve static files for uploaded images
