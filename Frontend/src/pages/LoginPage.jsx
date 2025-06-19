@@ -50,7 +50,7 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
     const user = { email, password };
-    const url = `https://codelab-sq6v.onrender.com/user/login`;
+    const url = `${String(import.meta.env.VITE_API_URL)}/user/login`;
 
     axios
       .post(url, user, { withCredentials: true })
@@ -62,7 +62,6 @@ const LoginPage = () => {
           showErrorToast(response.data.message);
         } else if (response.data.status === "success") {
           showSuccessToast(response.data.message);
-          console.log("Frontend: ",response.data.user);
           dispatch(login(response.data.user));
           
           // Check if there's a redirect destination
@@ -76,7 +75,7 @@ const LoginPage = () => {
       })
       .catch((err) => {
         setIsLoading(false);
-        // console.log("loggin catch")
+        console.log("loggin catch")
         showErrorToast(err.response?.data?.message || "Something went wrong!");
       });
   };

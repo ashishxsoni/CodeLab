@@ -38,9 +38,18 @@ const dispatch = useDispatch();
       showErrorToast("⚠ All fields are required before generating a room ID.");
       return;
     }
-    const newRoomId = Math.random().toString(36).substring(2, 10);
-    setRoomId(newRoomId);
-    setCopied(false);
+    // const url = "http://localhost:5000/room/generate-roomId";
+    const url = `${String(import.meta.env.VITE_API_URL)}/room/generate-roomId`;
+    
+    axios.get(url,{ withCredentials: true })
+    .then((response) => {
+      const newRoomId =response.data.roomId;
+      setRoomId(newRoomId);
+      setCopied(false);
+  }).catch((err) => {
+    showErrorToast(err.response?.data?.message || "Something went wrong RoomId Can't Created !");
+  }
+  );
   };
 
   const copyToClipboard = () => {
@@ -52,16 +61,17 @@ const dispatch = useDispatch();
   const handleSubmit = (e) => {
     e.preventDefault();
    dispatch(setLoading(true));
-    const url = `https://codelab-sq6v.onrender.com/room/create-room`;
+    // const url = "http://localhost:5000/room/create-room";
+    const url = `${String(import.meta.env.VITE_API_URL)}/room/create-room`;
     const FormData = {
+      roomId:roomId,
       meetingName: meetingName,
       hostName: hostName,
-      roomId: roomId,
       host:userData,
     };
     axios.post(url, FormData , { withCredentials: true })
     .then((response) => {
-      dispatch(setLoading(false));
+     
       if (response.data.status === "success") {
         showSuccessToast(response.data.message);
     navigate("/room/setup", { state: { roomId } });
@@ -72,10 +82,11 @@ const dispatch = useDispatch();
         showErrorToast(response.data.message);
       }
   }).catch((err) => {
-    dispatch(setLoading(false));
     showErrorToast(err.response?.data?.message || "Something went wrong!");
   }
-  );
+  ).finally(()=>{
+    dispatch(setLoading(false));
+  })
   };
 
   // Handles input change and clears the error when user types
@@ -95,7 +106,7 @@ const dispatch = useDispatch();
 
   // Prevent accessing setup if not authenticated
   if (!isAuthenticated) {
-    return <AccessDeniedScreen darkMode={darkMode} navigate={navigate} />;
+    return <AccessDeniedScreen darkMode={darkMode} navigate={navigate} redirectPath="/login" />;
   }
 
   return (

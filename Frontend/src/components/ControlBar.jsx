@@ -1,7 +1,8 @@
 // New Component: ControlBar
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Video, VideoOff, Mic, MicOff, Users, MessageCircle,  LogOut,
-   Bot,  Clipboard,  ChevronLeft, ChevronRight
+  Video, VideoOff, Mic, MicOff, Users, MessageCircle, Share, LogOut,
+  Copy, Bot, X, Check, Clipboard, Settings, UserPlus, ChevronLeft, ChevronRight
 } from "lucide-react";
 import ControlBarButton from "./ControlBarButton";
 const ControlBar = ({ 
@@ -10,7 +11,7 @@ const ControlBar = ({
     sidebarContent, toggleSidebar, 
     showSidebar, shareRoomLink, 
     isFullScreenApp, toggleFullScreenApp, 
-    leaveRoom, darkMode 
+    darkMode 
   }) => {
     return (
       <div className={`w-16 flex flex-col items-center py-6 space-y-6 shadow-lg z-10 px-2 ${
@@ -68,12 +69,9 @@ const ControlBar = ({
           </ControlBarButton>
           
           <ControlBarButton
-            onClick={() => {}}
-            active={false}
-            inactiveColor={{
-              dark: "bg-slate-800 hover:bg-slate-700 text-purple-300",
-              light: "bg-white hover:bg-blue-100 text-purple-600"
-            }}
+            onClick={() => toggleSidebar("chat-bot")}
+             active={showSidebar && sidebarContent === "chat-bot"}
+             activeColor="bg-gradient-to-r from-sky-600 to-cyan-600 text-white"
             darkMode={darkMode}
             title="AI Assistant"
           >
@@ -83,8 +81,13 @@ const ControlBar = ({
         
         <div className="space-y-6">
           <ControlBarButton
-            onClick={shareRoomLink}
-            active={false}
+            onClick={()=>{
+              shareRoomLink(!showSidebar);
+              toggleSidebar("share-link");  
+            } 
+            }
+            active={showSidebar && sidebarContent === "share-link"}
+             activeColor="bg-gradient-to-r from-sky-600 to-cyan-600 text-white"
             darkMode={darkMode}
             title="Share Room Link"
           >
@@ -101,9 +104,9 @@ const ControlBar = ({
           </ControlBarButton>
           
           <ControlBarButton
-            onClick={leaveRoom}
-            active={true}
-            activeColor="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
+            onClick={() => toggleSidebar("leave-room")}
+            active={showSidebar && sidebarContent === "leave-room"}
+           activeColor="bg-gradient-to-r from-sky-600 to-cyan-600 text-white"
             darkMode={darkMode}
             title="Leave Room"
           >

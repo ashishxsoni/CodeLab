@@ -135,20 +135,6 @@ const JoinPage = () => {
               />
             </div>
 
-            {/* Error Message */}
-            {/* <AnimatePresence>
-              {error && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-red-500 text-center font-semibold"
-                >
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence> */}
-
             {/* Join Button */}
             <motion.button
               type="submit"

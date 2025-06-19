@@ -1,7 +1,7 @@
-import React from 'react';
 import { Settings, UserPlus, Mic, MicOff, Video, VideoOff } from "lucide-react";
 
-const ParticipantsList = ({ participants, darkMode }) => {
+const ParticipantsList = ({ participants, darkMode  }) => {
+  
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
@@ -26,7 +26,7 @@ const ParticipantsList = ({ participants, darkMode }) => {
             <div className="relative mr-3">
               {participant.profileImage ? (
                 <img 
-                  src={`https://codelab-sq6v.onrender.com/${participant.profileImage}`}
+                  src={`http://localhost:5000${participant.profileImage}`}
                   alt={participant.fullname}
                   className="h-10 w-10 rounded-full object-cover shadow-lg"
                 />

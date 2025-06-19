@@ -1,5 +1,5 @@
 const User = require("../models/user");
-
+const { createTokenForUser } = require("../services/authentication.js");
 // Email validation function
 const validateEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -12,7 +12,7 @@ async function handleSignUp(req, res) {
 
     // ✅ Validate Required Fields
     if (!fullname?.trim() || !email?.trim() || !password?.trim()) {
-      return res.status(400).json({
+      return res.status(200).json({
         status: "warning",
         message: "⚠ All fields are required.",
       });
@@ -20,7 +20,7 @@ async function handleSignUp(req, res) {
 
     // ✅ Validate Email Format
     if (!validateEmail(email)) {
-      return res.status(400).json({
+      return res.status(200).json({
         status: "warning",
         message: "⚠ Please enter a valid email address.",
       });
@@ -28,7 +28,7 @@ async function handleSignUp(req, res) {
 
     // ✅ Validate Password Length
     if (password.length < 6) {
-      return res.status(400).json({
+      return res.status(200).json({
         status: "warning",
         message: "⚠ Password must be at least 6 characters long.",
       });
@@ -63,16 +63,35 @@ async function handleSignUp(req, res) {
       password,
       profileImage:profileImagePath,
     });
+    await newUser.save();
 
     console.log("✅ Signup Successful:", newUser);
+    //genrating token
+    const token = createTokenForUser(newUser);
+    const isProduction = process.env.NODE_ENV === "production";
 
-    // ✅ Send Response with User Data (excluding password)
-    return res.status(201).json({
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProduction, // Secure in production, not in development
+      sameSite: isProduction ? "None" : "Lax", // "None" for cross-site cookies, "Lax" for localhost
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
+    });
+    console.log("✅ Login Successful for:", newUser.email);
+
+    // ✅ Send Response with Safe User Data (excluding password)
+    return res.status(200).json({
+      success: true,
+      message: " User Registered & Logged In Successfully!",
       status: "success",
-      message: "🎉 User registered successfully!",
+      user: {
+        _id: newUser._id,
+        fullname: newUser.fullname,
+        email: newUser.email,
+        profileImage: newUser.profileImage,
+      },
     });
   } catch (error) {
-    console.error("❌ Signup Error:", error);
+    console.error(" Signup Error:", error);
     return res.status(500).json({
       status: "error",
       message: "Server error during registration. Please try again later.",

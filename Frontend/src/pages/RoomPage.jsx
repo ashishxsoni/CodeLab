@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,7 +13,7 @@ import { setLoading } from "../redux/authSlice";
 
 import {
   Footer,
-  LeaveRoomModal,
+  LeaveRoomComponent,
   Header,
   LoadingScreen,
   AccessDeniedScreen,
@@ -44,7 +43,7 @@ const RoomPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [typingContent, setTypingContent] = useState("");
   const [isHost, setIsHost] = useState(false);
-  const [host , setHost] = useState({});
+  const [host, setHost] = useState({});
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [roomLink, setRoomLink] = useState("");
@@ -57,6 +56,7 @@ const RoomPage = () => {
   const typingTimeoutRef = useRef(null);
   const [notification, setNotification] = useState(null);
   const socketInitialized = useRef(false);
+  const [hostLeft,toggleHostLeft] = useState(false);
 
   // Authentication check and redirect
   useEffect(() => {
@@ -68,8 +68,7 @@ const RoomPage = () => {
         4,
         "Access Denied",
         "Please log in to access the room.",
-        "Redirecting in",
-        { redirectFrom: "/room/roomId" }
+        "Redirecting in"
       );
       const timer = setTimeout(() => {
         navigate("/login", {
@@ -97,6 +96,7 @@ const RoomPage = () => {
       setNotification(null);
     }, 3000);
   }, []);
+  
 
   // Initialize socket connection
   useEffect(() => {
@@ -104,24 +104,23 @@ const RoomPage = () => {
       socketInitialized.current = true;
       //validtion check for roomId and user
       dispatch(setLoading(true));
-      const url = `https://codelab-sq6v.onrender.com/room/${roomId}`;
+      // const url = `http://localhost:5000/room/${roomId}`;
+      const url = `${String(import.meta.env.VITE_API_URL)}/room/${roomId}`;
       axios
         .get(url, {
           params: { user: userData }, // Send userId for backend validation
           withCredentials: true,
         })
         .then((response) => {
-          dispatch(setLoading(false));
           if (response.data.status === "error") {
-            // console.log("Frontend error ");
+            console.log("Frontend error ");
             navigate("/join", {
               state: {
                 message: response.data.message,
               },
             });
-
           } else if (response.data.status === "warning") {
-            // console.log("Frontend warning ");
+            console.log("Frontend warning ");
             navigate("/join", {
               state: {
                 message: response.data.message,
@@ -130,10 +129,16 @@ const RoomPage = () => {
           } else if (response.data.status === "success") {
             showSuccessToast(response.data.message); //show like welcome to the meeting
 
-              setHost(response.data.host); // set actual host in this state
-              setIsHost(response.data.host._id === userData._id); // set the current user state that he is host or not 
-              // console.log(`for meeting ${roomId} Host is ${response.data.host.fullname}`);
-              // console.log(`${userData.fullname} is ${response.data.host._id === userData._id? "Host" : "Not Host"}`);
+            setHost((prev) => response.data.host); // set actual host in this state
+            setIsHost((prev) => response.data.host._id === userData._id); // set the current user state that he is host or not
+            console.log(
+              `for meeting ${roomId} Host is ${response.data.host.fullname}`
+            );
+            console.log(
+              `${userData.fullname} is ${
+                response.data.host._id === userData._id ? "Host" : "Not Host"
+              }`
+            );
 
             // const socketOptions = {
             //   path: "/socket.io",
@@ -148,51 +153,51 @@ const RoomPage = () => {
             //   secure: process.env.NODE_ENV === "production",
             //   rejectUnauthorized: false
             // };
-            if(isLoading) return;
+            if (isLoading) return;
             const socketOptions = {
               transports: ["websocket", "polling"],
               reconnectionAttempts: 5,
             };
-    
-            socketRef.current = io(`https://codelab-sq6v.onrender.com`, socketOptions);
-           
+
+            // socketRef.current = io("http://localhost:5000", socketOptions);
+            socketRef.current = io(`${String(import.meta.env.VITE_API_URL)}`, socketOptions);
 
             // Handle connection errors
             socketRef.current.on("connect_error", (err) => {
-              // console.error("Socket connection error:", err.message);
-              showErrorToast("Failed to connect to the server. Please try again.");
-              navigate("/join" , {
+              console.error("Socket connection error:", err.message);
+              showErrorToast(
+                "Failed to connect to the server. Please try again."
+              );
+              navigate("/join", {
                 state: {
                   message: "Failed to connect to the server. Please try again.",
-                },}  
-              );
-            });
-            // Join room when socket is connected
-            
-             
-              socketRef.current.emit("join-room", {
-                roomId,
-                user: {
-                  ...userData,
-                  isHost,
-                  isMicOn,
-                  isCameraOn,
                 },
               });
-              socketRef.current.on("room-state", (data) => {
-                setParticipants(data.roomUsers);
-                setCode(data.code);
-                setLanguage(data.language);
-                setMessages(data.messages);
-                setIsHost(data.isHost);
-              });
+            });
+            // Join room when socket is connected
+
+            socketRef.current.emit("join-room", {
+              roomId,
+              user: {
+                ...userData,
+                isHost: response.data.host._id === userData._id,
+                isMicOn,
+                isCameraOn,
+              },
+            });
+            socketRef.current.on("room-state", (data) => {
+              setParticipants((prev) => data.roomUsers);
+              setCode((prev) => data.code);
+              setLanguage((prev) => data.language);
+              setMessages((prev) => data.messages);
+              setIsHost((prev) => data.isHost);
+            });
 
             socketRef.current.on("user-joined", (data) => {
-              
               // Show notification for user joining
-              if (data.user ) {
+              if (data.user) {
                 showNotification(
-                  `${data.user?.fullname || 'unknown'} joined the room`,
+                  `${data.user?.fullname || "unknown"} joined the room`,
                   "success"
                 );
               }
@@ -201,26 +206,29 @@ const RoomPage = () => {
 
             // Socket event listeners
             socketRef.current.on("code-update", (newCode) => {
-              // console.log("New Code Update Received", newCode);
-              
+              console.log("New Code Update Received", newCode);
+
               setCode(newCode);
             });
-            
-            socketRef.current.on("language-update", (newLanguage) => {
-              // console.log("New Language  Update Received", newLanguage);
+
+            socketRef.current.on("language-update", (newLanguage, user) => {
+              showNotification(
+                `Language updated to ${newLanguage} by ${user.fullname}`
+              );
+
+              console.log("New Language  Update Received", newLanguage);
               setLanguage(newLanguage);
             });
             //messagedata is an array of objects
             socketRef.current.on("new-message", (messageData) => {
-              // console.log("New message received", messageData);
+              console.log("New message received", messageData);
               setMessages(messageData);
-              showNotification(
-                `${messageData.sender.fullname} sent a message in chats`,
-                "info"
-              );
+              if (!showSidebar)
+                showNotification(
+                  `${messageData.sender.fullname} sent a message in chats`,
+                  "info"
+                );
             });
-
-          
 
             socketRef.current.on("user-left", (data) => {
               setParticipants(data.roomUsers);
@@ -247,32 +255,31 @@ const RoomPage = () => {
             });
 
             socketRef.current.on("room-closed", () => {
-              // Show notification first
+              console.log("Host left the room. The session is ending.");
+             toggleHostLeft((prev)=>!prev);
+              // showNotification(
+              //   "The host left the room. The session is ending.",
+              //   "error"
+              // );
+              // // socketRef.current.disconnect();// this is done when we redirect to homepage auto via unmount state using return
 
-              showNotification(
-                "The host left the room. The session is ending.",
-                "error"
-              );
-              // socketRef.current.disconnect();// this is done when we redirect to homepage auto via unmount state using return
-
-              // Redirect after a delay to allow seeing the notification
-              setTimeout(() => {
-                navigate("/");
-              }, 3000);
+              // // Redirect after a delay to allow seeing the notification
+              // setTimeout(() => {
+              //   navigate("/");
+              // }, 3000);
             });
 
             socketRef.current.on("user-blocked", (user) => {
               if (user._id === userData._id) {
-                showNotification(
-                  "You have been blocked from this room.",
-                  "error"
+                AccessDeniedScreenComponent(
+                  darkMode,
+                  navigate,
+                  "/login",
+                  3,
+                  "Access Denied",
+                  "Please ask the Host to Unblocked you from the Meeting.",
+                  "Redirecting in"
                 );
-                //i think here should be pointed the alert function
-                // Redirect after a delay to allow seeing the notification
-                // socketRef.current.disconnect();// this is done when we redirect to homepage auto via unmount state using return
-                setTimeout(() => {
-                  navigate("/");
-                }, 3000);
               } else {
                 showNotification(
                   `User ${user.fullname} has been blocked from this room.`,
@@ -280,20 +287,21 @@ const RoomPage = () => {
                 );
               }
             });
-
           }
-           // Create room link
-           setRoomLink(`${window.location.origin}/room/${roomId}`);
+          // Create room link
+          setRoomLink(`${window.location.origin}/room/${roomId}`);
         })
         .catch((err) => {
-          // console.log("Frontend catch error ");
-          err.response?.data?.message || "Something went wrong!"
-          dispatch(setLoading(false));
+          console.log("Frontend catch error ");
+          err.response?.data?.message || "Something went wrong!";
           navigate("/join", {
             state: {
-              message:  err.response?.data?.message || "Something went wrong!"
+              message: err.response?.data?.message || "Something went wrong!",
             },
           });
+        })
+        .finally(() => {
+          dispatch(setLoading(false));
         });
 
       // Clean up function when unmounts from this website
@@ -315,15 +323,7 @@ const RoomPage = () => {
         }
       };
     }
-  }, [
-    isAuthenticated, 
-    userData, 
-    roomId, 
-    navigate, 
-    showNotification,
-    dispatch,
-
-  ]);
+  }, [isAuthenticated, userData, roomId, navigate, showNotification, dispatch]);
 
   // Handle full screen ESC notification
   useEffect(() => {
@@ -336,52 +336,6 @@ const RoomPage = () => {
     }
   }, [isFullScreenApp]);
 
-  // Handle code changes
-  // const handleCodeChange = useCallback(
-  //   (newCode) => {
-  //     setCode(newCode);
-  //     socketRef.current?.emit("code-change", { roomId, code: newCode });
-  //   },
-  //   [roomId]
-  // );
-
-  // Handle language changes
-  // const handleLanguageChange = useCallback(
-  //   (newLanguage) => {
-  //     setLanguage(newLanguage);
-  //     socketRef.current?.emit("language-change", {
-  //       roomId,
-  //       language: newLanguage,
-  //     });
-  //   },
-  //   [roomId]
-  // );
-
-  // Handle message typing
-  // const handleMessageTyping = useCallback(() => {
-  //   socketRef.current?.emit("typing", { roomId });
-  // }, [roomId]);
-
-  // Handle sending messages
-  // const handleSendMessage = useCallback(
-  //   (e) => {
-  //     e.preventDefault();
-  //     if (newMessage.trim()) {
-  //       const messageData = {
-  //         message: newMessage,
-  //         sender: userData,
-  //         time: new Date().toLocaleTimeString([], {
-  //           hour: "2-digit",
-  //           minute: "2-digit",
-  //         }),
-  //       };
-  //       setMessages((prevMessages) => [...prevMessages, messageData]);
-  //       socketRef.current?.emit("update-messages", { roomId, messageData });
-  //     }
-  //   },
-  //   [newMessage, roomId, userData]
-  // );
-
   // UI control functions
   const toggleCamera = useCallback(() => setIsCameraOn((prev) => !prev), []);
   const toggleMic = useCallback(() => setIsMicOn((prev) => !prev), []);
@@ -390,37 +344,27 @@ const RoomPage = () => {
     []
   );
 
-  const shareRoomLink = useCallback(() => {
-    setShowCopyPopup(true);
-
-    navigator.clipboard.writeText(roomLink).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    });
-  }, [roomLink]);
-
-  const leaveRoom = useCallback(() => {
-    if (
-      window.confirm(
-        "Are you sure you want to leave this collaborative session?"
-      )
-    ) {
-      socketRef.current?.emit("leave-room");
-      navigate("/");
-    }
-  }, [navigate]);
+  const shareRoomLink = useCallback(
+    (flag) => {
+      setShowCopyPopup(flag);
+      if (!flag) return;
+      navigator.clipboard.writeText(roomLink).then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      });
+    },
+    [roomLink]
+  );
 
   const toggleSidebar = useCallback(
     (content) => {
-
-      
       setShowSidebar((prev) => {
-
-        
+        // If the sidebar is already open and the same content is clicked, close it
         if (prev && sidebarContent === content) {
           return false;
         } else {
           setSidebarContent(content);
+
           return true;
         }
       });
@@ -443,16 +387,10 @@ const RoomPage = () => {
   // Access denied screen
   if (!isAuthenticated) {
     return (
-      // <div className="min-h-screen flex flex-col">
-      //   <Header />
-      //   <main className="w-full h-full flex flex-col flex-grow">
-      //     <AccessDeniedScreen darkMode={darkMode} navigate={navigate} />
-      //   </main>
-      //   <Footer />
-      // </div>
       <AccessDeniedScreenComponent darkMode={darkMode} navigate={navigate} />
     );
   }
+ 
 
   return (
     <div
@@ -472,6 +410,20 @@ const RoomPage = () => {
         width: isFullScreenApp ? "100vw" : "100%",
       }}
     >
+       {hostLeft && (
+      <LeaveRoomComponent
+        darkMode={darkMode}
+        navigate={navigate}
+        socket={socketRef.current}
+        title={"Room Closed"}
+        message={"Host has Left the Meeting, You Will be Redirected. You can Save the Code Meanwhile"}
+        showCloseButton={true}
+        showButtons={false}
+        initialRedirecting={true}
+        initialCountDown={4}
+      />
+    )}
+
       {!isFullScreenApp && <Header />}
 
       <div className="flex flex-grow overflow-hidden relative">
@@ -486,7 +438,6 @@ const RoomPage = () => {
           shareRoomLink={shareRoomLink}
           isFullScreenApp={isFullScreenApp}
           toggleFullScreenApp={toggleFullScreenApp}
-          leaveRoom={leaveRoom}
           darkMode={darkMode}
           isHost={isHost}
         />
@@ -534,14 +485,16 @@ const RoomPage = () => {
 
         <div
           className={`transition-all duration-300 ease-in-out ${
-            showSidebar ? "w-[calc(100%-21rem)]" : "w-[calc(100%-4rem)]"
+            showSidebar &&
+            (sidebarContent === "participants" || sidebarContent === "messages")
+              ? "w-[calc(100%-21rem)]"
+              : "w-[calc(100%-4rem)]"
           }`}
           ref={codeEditorRef}
         >
           <CodeEditor
             className="h-full rounded-none"
             parentIsFullScreen={isFullScreenApp}
-            
             code={code}
             language={language}
             setCode={setCode}
@@ -550,7 +503,6 @@ const RoomPage = () => {
             socket={socketRef.current}
             isTyping={isTyping}
             typingContent={typingContent}
-
           />
         </div>
 
@@ -558,6 +510,7 @@ const RoomPage = () => {
           {showSidebar && (
             <Sidebar
               show={true}
+              navigate={navigate}
               content={sidebarContent}
               onClose={() => setShowSidebar(false)}
               socket={socketRef.current}
@@ -568,7 +521,6 @@ const RoomPage = () => {
               host={host}
               setHost={setHost}
               darkMode={darkMode}
-             
             />
           )}
         </AnimatePresence>

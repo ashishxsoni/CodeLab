@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Share } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -6,7 +6,9 @@ import { useSelector } from "react-redux";
 const ChatMessages = ({ socket, messages, setMessages, darkMode, roomId }) => {
   const [newMessage, setNewMessage] = useState('');
   const userData = useSelector((state) => state.auth.userData);
-
+  useEffect(() => {
+    
+  }, [messages]);
   const handleSendMessage = (e) => {
     e.preventDefault();
     const trimmedMessage = newMessage.trim();
@@ -41,7 +43,8 @@ const ChatMessages = ({ socket, messages, setMessages, darkMode, roomId }) => {
       return (
         <div className={containerClasses}>
           <img 
-            src={`https://codelab-sq6v.onrender.com/${sender.profileImage}`}
+            // src={`http://localhost:5000${sender.profileImage}`}
+            src={`${String(import.meta.env.VITE_API_URL)}/${sender.profileImage}`}
             alt={sender.fullname}
             className={imageClasses}
           />

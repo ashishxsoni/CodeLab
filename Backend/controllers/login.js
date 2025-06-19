@@ -45,20 +45,21 @@ async function handleLogin(req, res) {
     }
 
     const { token, user } = result;
-      console.log("🔑 Token Generated:", token);
 
-    // ✅ Set the cookie securely
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "None",
+      secure: isProduction, // Secure in production, not in development
+      sameSite: isProduction ? "None" : "Lax", // "None" for cross-site cookies, "Lax" for localhost
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
     });
+    
     console.log("✅ Login Successful for:", user.email);
 
     return res.status(200).json({
       success: true,
-      message: "🎉 Logged In Successfully! Redirecting...",
+      message: "Logged In Successfully! Redirecting...",
       status: "success", // ✅ Success status
       user: {
         _id: user._id,

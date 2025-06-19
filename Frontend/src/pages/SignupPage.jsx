@@ -1,15 +1,20 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState , useRef, useEffect} from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header, Footer, LoadingScreen } from "../components";
-import { useSelector } from "react-redux";
+import { useSelector  , useDispatch} from "react-redux";
 import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { showErrorToast, showSuccessToast, showWarningToast } from "../utils/toast";
 import axios from "axios";
 import { setLoading } from "../redux/authSlice";
+import { login } from "../redux/authSlice";
+
 const SignupPage = () => {
   const navigate = useNavigate();
-  
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const isAuthenticated = useSelector((state) => state.auth.isAuth);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +24,23 @@ const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const darkMode = useSelector((state) => state.theme.darkMode);
   const [isHovered, setIsHovered] = useState(false);
+// Use a ref to track if message has been shown
+const messageShownRef = useRef(false);
+useEffect(() => {
+  // Check if there's a redirect message from another page
+  if (location.state?.message && !messageShownRef.current) {
+    messageShownRef.current = true;
+    showWarningToast(location.state.message);
+     // Clear the message so it doesn't show again on re-renders
+  // navigate(location.pathname, { replace: true, state: {} });
+  }
+}, [location]);
+
+useEffect(() => {
+  if (isAuthenticated) {
+    navigate("/");
+  }
+}, [isAuthenticated, navigate]);
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -50,15 +72,13 @@ const SignupPage = () => {
       if (profileImage) {
         formData.append("profileImage", profileImage);
       }
-      const url = `https://codelab-sq6v.onrender.com/user/signup`;
-      // console.log("url in signup is :", import.meta.env.VITE_API_URL); 
-      // const url = 'https://codelab-sq6v.onrender.com/user/signup';
+      // const url = "http://localhost:5000/user/signup";
+      const url = `${String(import.meta.env.VITE_API_URL)}/user/signup`;
       
       const response = await axios.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true // Important for receiving cookies
       });
-
-      // console.log("After Fetching in repsonse Query : Frontend");
       setIsLoading(false);
       if (response.data.status === "warning") {
         showWarningToast(response.data.message);
@@ -67,7 +87,20 @@ const SignupPage = () => {
         showErrorToast(response.data.message);
       }else{
       showSuccessToast(response.data.message);
-      navigate("/login");
+      console.log("Frontend user : ",response.data.user);
+      if (response.data.user) {
+        dispatch(login(response.data.user));
+        
+        // Navigate to appropriate page
+        if (location.state?.redirectFrom) {
+          navigate(location.state.redirectFrom);
+        } else {
+          navigate("/");
+        }
+      } else {
+        // This shouldn't happen if the backend is working correctly
+        showErrorToast("User data missing in response");
+      }
       }
   
     } catch (err) {

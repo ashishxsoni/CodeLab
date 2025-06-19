@@ -10,10 +10,9 @@ import AccessDeniedScreen from "./AccessDenied";
 import ChatMessages from "./ChatMessages";
 import ControlBar from "./ControlBar";
 import ControlBarButton from "./ControlBarButton";
-import EscNotification from "./EscNotification";
+import EscNotification from "./ESCNotification";
 import Sidebar from "./sideBar";
 import ShareLinkPopup from "./ShareLinkPopup";
-import LeaveRoomModal from "./LeaveRoomScreen";
-
+import LeaveRoomComponent from "./LeaveRoom";
 export { CodeEditor, Footer, Header, ParticipantsList, ProfilePanel, HomeContent, ThemeButton , LoadingScreen, AccessDeniedScreen , 
-    ChatMessages , ControlBar , ControlBarButton, EscNotification , Sidebar , ShareLinkPopup , LeaveRoomModal };
+    ChatMessages , ControlBar , ControlBarButton, EscNotification , Sidebar , ShareLinkPopup ,LeaveRoomComponent };

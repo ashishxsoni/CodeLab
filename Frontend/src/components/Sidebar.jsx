@@ -2,13 +2,44 @@ import { motion, AnimatePresence } from "framer-motion";
 import {X} from "lucide-react";
 import ParticipantsList from "./ParticipantsList";
 import ChatMessages from "./ChatMessages";
+import LeaveRoomComponent from "./LeaveRoom";
 const Sidebar = ({ 
     show, content, onClose, host,setHost,
     socket, roomId,participants, messages, setMessages ,
-    darkMode 
+    darkMode ,navigate
   }) => {
+   
     if (!show) return null;
-    
+    if(content === "leave-room") {
+      return (
+          <LeaveRoomComponent
+            darkMode={darkMode}
+            navigate={navigate}
+            socket={socket}
+            redirectPath={'/join'}
+            roomCode={roomId}
+            onClose={onClose}
+            showCloseButton={true}
+          />
+      )
+    }else if(content === "chat-bot") {
+      return (
+      //i'm using leave room component well structred for this 
+      <LeaveRoomComponent
+      darkMode={darkMode}
+      navigate={navigate}
+      socket={socket}
+      title={"Coming Soon"}
+      message="We'll working on this feature soon the website will upgraded with this. 
+      Thank You Keep Visiting!! "
+      onClose={onClose}
+      showCloseButton={true}
+      showButtons={false}
+      
+    />
+      )
+    }else if(content ===  "share-link") return null;
+    //handleed for participants and messages
     return (
       <motion.div
         initial={{ x: "100%" }}
@@ -63,3 +94,6 @@ const Sidebar = ({
   };
 
   export default Sidebar;
+
+
+
