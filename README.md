@@ -11,6 +11,35 @@
 
 **Try CodeLab now:** [https://codelabb.netlify.app/join](https://codelabb.netlify.app/join)
 
+![CodeLab Demo](images/screenshots/coderoompage.png)
+
+## 📸 Screenshots
+
+<div align="center">
+
+### 🏠 Home Page
+![Home Page](images/screenshots/homepage.png)
+
+### 🎯 Join a Room
+![Join Page](images/screenshots/joinpage.png)
+
+### 🚀 Host a Room
+![Host Page](images/screenshots/hostpage.png)
+
+### ⚙️ Room Setup
+![Setup Page](images/screenshots/setuppage.png)
+
+### 👥 Code Room - Real-time Collaboration
+![Code Room](images/screenshots/coderoompage.png)
+
+### 💬 Chat Integration
+![Chat Page](images/screenshots/chatpage.png)
+
+### 👤 User Profile
+![Profile Page](images/screenshots/profilepage.png)
+
+</div>
+
 ## 📋 Table of Contents
 
 - [About](#about)
